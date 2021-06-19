@@ -58,13 +58,13 @@ public class BatchConfiguration {
         return new CSVFileProcessor();
     }
 
-    @Bean
-    public JdbcBatchItemWriter<CSVFileModel> writer(DataSource dataSource) {
-        return new JdbcBatchItemWriterBuilder<CSVFileModel>().itemSqlParameterSourceProvider(new BeanPropertyItemSqlParameterSourceProvider<>())
-                .sql("INSERT INTO csvfilemodel (anzsic06,Area,file_year,geo_count,ec_count) VALUES (:anzsic06, :area, :year, :geoCount, :ecCount)")
-                .dataSource(dataSource)
-                .build();
-    }
+//    @Bean
+//    public JdbcBatchItemWriter<CSVFileModel> writer(DataSource dataSource) {
+//        return new JdbcBatchItemWriterBuilder<CSVFileModel>().itemSqlParameterSourceProvider(new BeanPropertyItemSqlParameterSourceProvider<>())
+//                .sql("INSERT INTO csvfilemodel (anzsic06,Area,file_year,geo_count,ec_count) VALUES (:anzsic06, :area, :year, :geoCount, :ecCount)")
+//                .dataSource(dataSource)
+//                .build();
+//    }
 
     @Bean
     public Job importUserJob(JobCompletionNotificationListener listener, Step step1) {
@@ -77,17 +77,17 @@ public class BatchConfiguration {
     }
 
     @Bean
-    public Step step1(JdbcBatchItemWriter<CSVFileModel> writer) {
+    public Step step1() {
         return stepBuilderFactory.get("step1")
                 .<CSVFileModel, CSVFileModel> chunk(10)
                 .reader(reader())
+                .writer(fileWriter())
                 .processor(processor())
-                .writer(writer)
                 .build();
     }
 
     @Bean
-    public StaxEventItemWriter<CSVFileModel> writer(){
+    public StaxEventItemWriter<CSVFileModel> fileWriter(){
         StaxEventItemWriter<CSVFileModel> writer = new StaxEventItemWriter<>();
         writer.setResource(new FileSystemResource("/Volumes/Data/Work/report.xml"));
         writer.setMarshaller(reportUnmarshaller());
