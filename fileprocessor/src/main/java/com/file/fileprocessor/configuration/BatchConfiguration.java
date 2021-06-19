@@ -9,12 +9,13 @@ import org.springframework.batch.core.configuration.annotation.EnableBatchProces
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
-import org.springframework.batch.item.database.BeanPropertyItemSqlParameterSourceProvider;
-import org.springframework.batch.item.database.JdbcBatchItemWriter;
-import org.springframework.batch.item.database.builder.JdbcBatchItemWriterBuilder;
 import org.springframework.batch.item.file.FlatFileItemReader;
+import org.springframework.batch.item.file.FlatFileItemWriter;
 import org.springframework.batch.item.file.builder.FlatFileItemReaderBuilder;
+import org.springframework.batch.item.file.builder.FlatFileItemWriterBuilder;
 import org.springframework.batch.item.file.mapping.BeanWrapperFieldSetMapper;
+import org.springframework.batch.item.file.transform.DelimitedLineAggregator;
+import org.springframework.batch.item.file.transform.DelimitedLineTokenizer;
 import org.springframework.batch.item.xml.StaxEventItemWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,7 +25,6 @@ import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.PathResource;
 import org.springframework.oxm.xstream.XStreamMarshaller;
 
-import javax.sql.DataSource;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -81,13 +81,13 @@ public class BatchConfiguration {
         return stepBuilderFactory.get("step1")
                 .<CSVFileModel, CSVFileModel> chunk(10)
                 .reader(reader())
-                .writer(fileWriter())
+                .writer(txtFileWriter())
                 .processor(processor())
                 .build();
     }
 
     @Bean
-    public StaxEventItemWriter<CSVFileModel> fileWriter(){
+    public StaxEventItemWriter<CSVFileModel> xmlFileWriter(){
         StaxEventItemWriter<CSVFileModel> writer = new StaxEventItemWriter<>();
         writer.setResource(new FileSystemResource("/Volumes/Data/Work/report.xml"));
         writer.setMarshaller(reportUnmarshaller());
@@ -103,5 +103,17 @@ public class BatchConfiguration {
         aliases.put("report", CSVFileModel.class);
         unMarshaller.setAliases(aliases);
         return unMarshaller;
+    }
+
+    @Bean
+    public FlatFileItemWriter txtFileWriter() {
+        DelimitedLineAggregator<CSVFileModel> lineAggregator = new DelimitedLineAggregator<>();
+        lineAggregator.setDelimiter(DelimitedLineTokenizer.DELIMITER_TAB);
+
+        return  new FlatFileItemWriterBuilder<CSVFileModel>()
+                .name("txtFileWriter")
+                .resource(new FileSystemResource("/Volumes/Data/Work/report.txt"))
+                .lineAggregator(lineAggregator)
+                .build();
     }
 }

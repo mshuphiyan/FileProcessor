@@ -21,12 +21,12 @@ public class FileFacade {
     @Autowired
     private SaveAsXls saveAsXls;
 
-    @Autowired
-    private SaveAsXml saveAsXml;
+//    @Autowired
+//    private SaveAsXml saveAsXml;
 
     public void writeTofile(){
         saveAsXls.saveFile("", filename);
-        saveAsXml.saveFile("", filename);
+//        saveAsXml.saveFile("", filename);
         saveAsTxt.saveFile("", filename);
     }
 
